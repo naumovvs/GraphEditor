@@ -42,4 +42,15 @@ public class Node {
         return parents;
     }
 
+    public boolean isParentOf(Node otherNode) {
+        boolean isParent = false;
+        for (Edge edge : outEdges) {
+            if (edge.getInNode() == otherNode) {
+                isParent = true;
+                break;
+            }
+        }
+        return isParent;
+    }
+
 }

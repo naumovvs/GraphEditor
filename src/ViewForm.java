@@ -53,6 +53,10 @@ public class ViewForm {
                     graph.firstChosenNode.outEdges.add(newEdge);
                     graph.secondChosenNode.inEdges.add(newEdge);
                     graph.edges.add(newEdge);
+                    // set off selection
+                    graph.firstChosenNode = null;
+                    graph.secondChosenNode = null;
+                    // repaint view
                     graph.calculateGeometry();
                     pnlMain.repaint();
                 }
@@ -75,6 +79,49 @@ public class ViewForm {
                     }
                     graph.nodes.remove(graph.firstChosenNode);
                     graph.firstChosenNode = null;
+                    graph.calculateGeometry();
+                    pnlMain.repaint();
+                }
+            }
+        });
+
+        btnDeleteEdge.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (graph.firstChosenNode != null &&
+                        graph.secondChosenNode != null) {
+                    if (graph.firstChosenNode.isParentOf(graph.secondChosenNode)) {
+                        if (graph.secondChosenNode.getParents().size() > 1) {
+                            Edge edgeToRemove = graph.firstChosenNode.outEdges.get(0);
+                            for (Edge edge : graph.firstChosenNode.outEdges) {
+                                if (edge.getOutNode() == graph.secondChosenNode) {
+                                    edgeToRemove = edge;
+                                    break;
+                                }
+                            }
+                            graph.firstChosenNode.outEdges.remove(edgeToRemove);
+                            graph.secondChosenNode.inEdges.remove(edgeToRemove);
+                            graph.edges.remove(edgeToRemove);
+                        }
+                    }
+                    if (graph.secondChosenNode.isParentOf(graph.firstChosenNode)) {
+                        if (graph.firstChosenNode.getParents().size() > 1) {
+                            Edge edgeToRemove = graph.secondChosenNode.outEdges.get(0);
+                            for (Edge edge : graph.secondChosenNode.outEdges) {
+                                if (edge.getOutNode() == graph.firstChosenNode) {
+                                    edgeToRemove = edge;
+                                    break;
+                                }
+                            }
+                            graph.secondChosenNode.outEdges.remove(edgeToRemove);
+                            graph.firstChosenNode.inEdges.remove(edgeToRemove);
+                            graph.edges.remove(edgeToRemove);
+                        }
+                    }
+                    // set off selection
+                    graph.firstChosenNode = null;
+                    graph.secondChosenNode = null;
+                    // repaint view
                     graph.calculateGeometry();
                     pnlMain.repaint();
                 }
