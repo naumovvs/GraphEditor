@@ -8,4 +8,11 @@ public class Edge {
         this.inNode = inNode;
     }
 
+    public Node getOutNode() {
+        return outNode;
+    }
+
+    public Node getInNode() {
+        return inNode;
+    }
 }
