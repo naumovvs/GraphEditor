@@ -18,6 +18,8 @@ public class Node {
         return this.code;
     }
 
+    public void setCode(Integer newCode) { this.code = newCode; }
+
     public boolean isLeaf() {
         return outEdges.isEmpty();
     }
@@ -51,6 +53,25 @@ public class Node {
             }
         }
         return isParent;
+    }
+
+
+    public boolean isPredecessorOf(Node otherNode) {
+        boolean isPredecessor = false;
+
+        for (Node child : getChildren()) {
+            if (child == otherNode) {
+                isPredecessor = true;
+                break;
+            }
+        }
+        if (!isPredecessor) {
+            for (Node child : getChildren()) {
+                isPredecessor = child.isPredecessorOf(otherNode);
+                if (isPredecessor) break;
+            }
+        }
+        return isPredecessor;
     }
 
 }

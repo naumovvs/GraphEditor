@@ -12,7 +12,15 @@ public class Edge {
         return outNode;
     }
 
+    public void setOutNode(Node node) {
+        outNode = node;
+    }
+
     public Node getInNode() {
         return inNode;
+    }
+
+    public void setInNode(Node node) {
+        inNode = node;
     }
 }

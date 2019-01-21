@@ -1,8 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -13,7 +11,7 @@ import java.util.ArrayList;
 public class ViewForm {
     private JButton btnDeleteNode, btnAddNode;
     private JButton btnAddEdge, btnDeleteEdge;
-    private JButton btnMerge;
+    private JButton btnChange;
     private JPanel pnlMain, pnlTools, pnlView;
 
     private Dimension screenSize;
@@ -23,108 +21,131 @@ public class ViewForm {
         graph = new Graph("graph.txt");
         screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-        btnAddNode.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (graph.firstChosenNode != null && graph.secondChosenNode == null) {
-                    Node newNode = new Node(graph.getMaxNodeCode() + 1);
-                    Edge newEdge = new Edge(graph.firstChosenNode, newNode);
-                    newNode.inEdges.add(newEdge);
-                    graph.firstChosenNode.outEdges.add(newEdge);
-                    graph.edges.add(newEdge);
-                    graph.nodes.add(newNode);
-                }
-                // start new graph, if empty
-                if (graph.nodes.size() == 0) {
-                    graph.nodes.add(new Node(0));
-                }
+        btnAddNode.addActionListener(e -> {
+            if (graph.firstChosenNode != null && graph.secondChosenNode == null) {
+                Node newNode = new Node(graph.getMaxNodeCode() + 1);
+                Edge newEdge = new Edge(graph.firstChosenNode, newNode);
+                newNode.inEdges.add(newEdge);
+                graph.firstChosenNode.outEdges.add(newEdge);
+                graph.edges.add(newEdge);
+                graph.nodes.add(newNode);
+            }
+            // start new graph, if empty
+            if (graph.nodes.size() == 0) {
+                graph.nodes.add(new Node(0));
+            }
+            graph.calculateGeometry();
+            pnlMain.repaint();
+        });
+
+        btnAddEdge.addActionListener(e -> {
+            if (graph.firstChosenNode != null &&
+                    graph.secondChosenNode != null &&
+                    !graph.edgeExists(graph.firstChosenNode, graph.secondChosenNode)) {
+                Edge newEdge = new Edge(graph.firstChosenNode, graph.secondChosenNode);
+                graph.firstChosenNode.outEdges.add(newEdge);
+                graph.secondChosenNode.inEdges.add(newEdge);
+                graph.edges.add(newEdge);
+                // set off selection
+                graph.firstChosenNode = null;
+                graph.secondChosenNode = null;
+                // repaint view
                 graph.calculateGeometry();
                 pnlMain.repaint();
             }
         });
 
-        btnAddEdge.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (graph.firstChosenNode != null &&
-                        graph.secondChosenNode != null &&
-                        !graph.edgeExists(graph.firstChosenNode, graph.secondChosenNode)) {
-                    Edge newEdge = new Edge(graph.firstChosenNode, graph.secondChosenNode);
-                    graph.firstChosenNode.outEdges.add(newEdge);
-                    graph.secondChosenNode.inEdges.add(newEdge);
-                    graph.edges.add(newEdge);
-                    // set off selection
-                    graph.firstChosenNode = null;
-                    graph.secondChosenNode = null;
-                    // repaint view
-                    graph.calculateGeometry();
-                    pnlMain.repaint();
+        btnDeleteNode.addActionListener(e -> {
+            if (graph.firstChosenNode != null && graph.secondChosenNode == null &&
+                    graph.firstChosenNode.isLeaf()) {
+                ArrayList<Node> parents = graph.firstChosenNode.getParents();
+                for (Node parent : parents) {
+                    Edge edgeToRemove = parent.outEdges.get(0);
+                    for (Edge edge : parent.outEdges)
+                        if (edge.getInNode() == graph.firstChosenNode)
+                            edgeToRemove = edge;
+                    parent.outEdges.remove(edgeToRemove);
+                    graph.edges.remove(edgeToRemove);
                 }
+                graph.nodes.remove(graph.firstChosenNode);
+                graph.firstChosenNode = null;
+                graph.calculateGeometry();
+                pnlMain.repaint();
             }
         });
 
-        btnDeleteNode.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (graph.firstChosenNode != null && graph.secondChosenNode == null &&
-                        graph.firstChosenNode.isLeaf()) {
-                    ArrayList<Node> parents = graph.firstChosenNode.getParents();
-                    for (Node parent : parents) {
-                        Edge edgeToRemove = parent.outEdges.get(0);
-                        for (Edge edge : parent.outEdges)
-                            if (edge.getInNode() == graph.firstChosenNode)
+        btnDeleteEdge.addActionListener(e -> {
+            if (graph.firstChosenNode != null &&
+                    graph.secondChosenNode != null) {
+                if (graph.firstChosenNode.isParentOf(graph.secondChosenNode)) {
+                    if (graph.secondChosenNode.getParents().size() > 1) {
+                        Edge edgeToRemove = graph.firstChosenNode.outEdges.get(0);
+                        for (Edge edge : graph.firstChosenNode.outEdges) {
+                            if (edge.getOutNode() == graph.secondChosenNode) {
                                 edgeToRemove = edge;
-                        parent.outEdges.remove(edgeToRemove);
+                                break;
+                            }
+                        }
+                        graph.firstChosenNode.outEdges.remove(edgeToRemove);
+                        graph.secondChosenNode.inEdges.remove(edgeToRemove);
                         graph.edges.remove(edgeToRemove);
                     }
-                    graph.nodes.remove(graph.firstChosenNode);
-                    graph.firstChosenNode = null;
-                    graph.calculateGeometry();
-                    pnlMain.repaint();
                 }
+                if (graph.secondChosenNode.isParentOf(graph.firstChosenNode)) {
+                    if (graph.firstChosenNode.getParents().size() > 1) {
+                        Edge edgeToRemove = graph.secondChosenNode.outEdges.get(0);
+                        for (Edge edge : graph.secondChosenNode.outEdges) {
+                            if (edge.getOutNode() == graph.firstChosenNode) {
+                                edgeToRemove = edge;
+                                break;
+                            }
+                        }
+                        graph.secondChosenNode.outEdges.remove(edgeToRemove);
+                        graph.firstChosenNode.inEdges.remove(edgeToRemove);
+                        graph.edges.remove(edgeToRemove);
+                    }
+                }
+                // set off selection
+                graph.firstChosenNode = null;
+                graph.secondChosenNode = null;
+                // repaint view
+                graph.calculateGeometry();
+                pnlMain.repaint();
             }
         });
 
-        btnDeleteEdge.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (graph.firstChosenNode != null &&
-                        graph.secondChosenNode != null) {
-                    if (graph.firstChosenNode.isParentOf(graph.secondChosenNode)) {
-                        if (graph.secondChosenNode.getParents().size() > 1) {
-                            Edge edgeToRemove = graph.firstChosenNode.outEdges.get(0);
-                            for (Edge edge : graph.firstChosenNode.outEdges) {
-                                if (edge.getOutNode() == graph.secondChosenNode) {
-                                    edgeToRemove = edge;
-                                    break;
-                                }
-                            }
-                            graph.firstChosenNode.outEdges.remove(edgeToRemove);
-                            graph.secondChosenNode.inEdges.remove(edgeToRemove);
-                            graph.edges.remove(edgeToRemove);
-                        }
-                    }
-                    if (graph.secondChosenNode.isParentOf(graph.firstChosenNode)) {
-                        if (graph.firstChosenNode.getParents().size() > 1) {
-                            Edge edgeToRemove = graph.secondChosenNode.outEdges.get(0);
-                            for (Edge edge : graph.secondChosenNode.outEdges) {
-                                if (edge.getOutNode() == graph.firstChosenNode) {
-                                    edgeToRemove = edge;
-                                    break;
-                                }
-                            }
-                            graph.secondChosenNode.outEdges.remove(edgeToRemove);
-                            graph.firstChosenNode.inEdges.remove(edgeToRemove);
-                            graph.edges.remove(edgeToRemove);
-                        }
-                    }
-                    // set off selection
-                    graph.firstChosenNode = null;
-                    graph.secondChosenNode = null;
-                    // repaint view
-                    graph.calculateGeometry();
-                    pnlMain.repaint();
+        btnChange.addActionListener(e -> {
+            if (graph.firstChosenNode != null &&
+                    graph.secondChosenNode != null &&
+                    !graph.firstChosenNode.isPredecessorOf(graph.secondChosenNode) &&
+                    !graph.secondChosenNode.isPredecessorOf(graph.firstChosenNode)) {
+
+                Node helper = new Node(graph.firstChosenNode.getCode());
+                for (Edge edge : graph.firstChosenNode.inEdges) {
+                    helper.inEdges.add(edge);
                 }
+
+                graph.firstChosenNode.setCode(graph.secondChosenNode.getCode());
+                graph.firstChosenNode.inEdges.clear();
+                for (Edge edge : graph.secondChosenNode.inEdges) {
+                    edge.setInNode(graph.firstChosenNode);
+                    graph.firstChosenNode.inEdges.add(edge);
+                }
+
+                graph.secondChosenNode.setCode(helper.getCode());
+                graph.secondChosenNode.inEdges.clear();
+                for (Edge edge : helper.inEdges) {
+                    edge.setInNode(graph.secondChosenNode);
+                    graph.secondChosenNode.inEdges.add(edge);
+                }
+
+
+                graph.calculateGeometry();
+                // set off selection
+                graph.firstChosenNode = null;
+                graph.secondChosenNode = null;
+                // repaint view
+                pnlMain.repaint();
             }
         });
     }
@@ -161,7 +182,7 @@ public class ViewForm {
                     if (mouseOverNode != graph.firstChosenNode &&
                             mouseOverNode != graph.secondChosenNode)
                         graph.mouseOverNode = mouseOverNode;
-                    System.out.println("Mouse over node: " + mouseOverNode.getCode());
+                    //System.out.println("Mouse over node: " + mouseOverNode.getCode());
                 }
                 else {
                     graph.mouseOverNode = null;
@@ -184,7 +205,7 @@ public class ViewForm {
                     else
                         graph.firstChosenNode = currentlyChosenNode;
                     graph.mouseOverNode = null;
-                    System.out.println("Chosen node: " + currentlyChosenNode.getCode());
+                    //System.out.println("Chosen node: " + currentlyChosenNode.getCode());
                 }
                 else {
                     graph.firstChosenNode = null;

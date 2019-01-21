@@ -51,7 +51,7 @@ public class Graph {
 
     public Node getNode(int nodeCode) {
         Node resNode = null;
-        for (Node node : this.nodes) {
+        for (Node node : nodes) {
             if (node.getCode() == nodeCode) {
                 resNode = node;
                 break;
