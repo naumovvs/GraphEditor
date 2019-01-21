@@ -35,6 +35,7 @@ public class ViewForm {
                 graph.nodes.add(new Node(0));
             }
             graph.calculateGeometry();
+            graph.firstChosenNode = null;
             pnlMain.repaint();
         });
 
@@ -81,7 +82,7 @@ public class ViewForm {
                     if (graph.secondChosenNode.getParents().size() > 1) {
                         Edge edgeToRemove = graph.firstChosenNode.outEdges.get(0);
                         for (Edge edge : graph.firstChosenNode.outEdges) {
-                            if (edge.getOutNode() == graph.secondChosenNode) {
+                            if (edge.getInNode() == graph.secondChosenNode) {
                                 edgeToRemove = edge;
                                 break;
                             }
@@ -95,7 +96,7 @@ public class ViewForm {
                     if (graph.firstChosenNode.getParents().size() > 1) {
                         Edge edgeToRemove = graph.secondChosenNode.outEdges.get(0);
                         for (Edge edge : graph.secondChosenNode.outEdges) {
-                            if (edge.getOutNode() == graph.firstChosenNode) {
+                            if (edge.getInNode() == graph.firstChosenNode) {
                                 edgeToRemove = edge;
                                 break;
                             }
