@@ -70,7 +70,6 @@ public class Graph {
 
     public void calculateGeometry() {
         int nodeSize = nodes.size() == 0 ? 0 : 100 / nodes.size() / 2;
-        // generateGeometry();
         root.X = 50 - nodeSize / 2; root.Y = nodeSize / 2;
         int levelsNumber = getDepth(root);
         int dY = levelsNumber != 0 ? (100 - nodeSize) / levelsNumber : 50;
@@ -79,8 +78,8 @@ public class Graph {
             ArrayList<Node> nextChildren = new ArrayList<>();
             int dX = (100 - nodeSize) / (children.size() + 1);
             for (int j = 0; j < children.size(); j++) {
-                children.get(j).X = (j + 1) * dX + nodeSize / 2;
-                children.get(j).Y = (i + 1) * dY + nodeSize / 2;
+                children.get(j).X = (j + 1) * dX - nodeSize / 2;
+                children.get(j).Y = (i + 1) * dY - nodeSize / 2;
                 for (Node nextChild : children.get(j).getChildren())
                     if (!nextChildren.contains(nextChild))
                         nextChildren.add(nextChild);
